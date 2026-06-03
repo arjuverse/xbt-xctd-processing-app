@@ -47,7 +47,7 @@ Use the editable table to:
 
     exec(
         open(
-            "legacy_xbt.py",
+            "./legacy_xbt.py",
             encoding="utf-8"
         ).read(),
         globals()
