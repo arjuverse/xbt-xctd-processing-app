@@ -10,23 +10,71 @@ from modules.xctd_core import (
     interpolate_xctd
 )
 
+
+def make_xctd_edf_text_for_download(metadata, df):
+
+    metadata_text = (
+        " // THIS IS AN MK-150 EXPORT DATA FILE (EDF)\n"
+    )
+
+    for key, value in metadata.items():
+
+        metadata_text += f"{key}: {value}\n"
+
+    metadata_text += "\n"
+
+    data_text = df.to_csv(
+        sep="\t",
+        index=False,
+        float_format="%.3f"
+    )
+
+    return metadata_text + data_text
+
+
 def run_xctd():
 
     st.header("XCTD Processing")
 
-    st.info(
-        """
-Upload raw `.CTD` files.
+    with st.expander(
+        "📘 XCTD Processing Instructions",
+        expanded=True
+    ):
 
-Workflow:
+        st.markdown(
+            """
+## XCTD Quality Control Workflow
 
-Generate XCTD EDF + Initial QC
-→ Inspect temperature and salinity plots
-→ Edit spike/spurious values in EDF table
-→ Regenerate QC plot
-→ Download corrected EDF ZIP and QC plot
+This module processes raw XCTD `.CTD` files and generates quality-controlled ocean profile products.
+
+### Workflow
+
+1. Upload raw `.CTD` files
+2. Generate XCTD EDF files and initial QC plot
+3. Inspect temperature and salinity profiles
+4. Edit spike or spurious values in the EDF table
+5. Regenerate the QC plot
+6. Generate 1 m and 5 m interpolated outputs
+7. Download final corrected products
+
+### QC Editing
+
+Use the editable table to:
+
+- remove bad rows
+- correct temperature spikes
+- correct salinity spikes
+- remove noisy tail values
+- trim unreliable regions
+
+### Final Outputs
+
+- Corrected XCTD EDF ZIP
+- Initial or corrected QC plot
+- 1 m interpolated CSV
+- 5 m interpolated CSV
 """
-    )
+        )
 
     # =====================================================
     # SESSION STATE
@@ -44,6 +92,12 @@ Generate XCTD EDF + Initial QC
     if "xctd_corrected_plot" not in st.session_state:
         st.session_state["xctd_corrected_plot"] = None
 
+    if "xctd_interp_1m" not in st.session_state:
+        st.session_state["xctd_interp_1m"] = None
+
+    if "xctd_interp_5m" not in st.session_state:
+        st.session_state["xctd_interp_5m"] = None
+
     # =====================================================
     # XCTD CRUISE INFORMATION
     # =====================================================
@@ -51,18 +105,28 @@ Generate XCTD EDF + Initial QC
     st.sidebar.header("XCTD Cruise Information")
 
     participants = st.sidebar.text_input(
-        "XCTD Participants",
+        "Participants",
         key="xctd_participants"
     )
 
     start_date = st.sidebar.text_input(
-        "XCTD Start Date",
+        "Start Date",
         key="xctd_start_date"
     )
 
     end_date = st.sidebar.text_input(
-        "XCTD End Date",
+        "End Date",
         key="xctd_end_date"
+    )
+
+    ship_name = st.sidebar.text_input(
+        "Ship Name",
+        key="xctd_ship_name"
+    )
+
+    call_sign = st.sidebar.text_input(
+        "Call Sign",
+        key="xctd_call_sign"
     )
 
     # =====================================================
@@ -101,6 +165,8 @@ Generate XCTD EDF + Initial QC
             st.session_state["xctd_edf_files"] = edf_files
             st.session_state["xctd_corrected_files"] = []
             st.session_state["xctd_corrected_plot"] = None
+            st.session_state["xctd_interp_1m"] = None
+            st.session_state["xctd_interp_5m"] = None
 
             if not edf_files:
 
@@ -161,7 +227,7 @@ Generate XCTD EDF + Initial QC
 - Edit wrong temperature values
 - Edit wrong salinity values
 - Remove noisy tail values
-- Click **Regenerate XCTD QC Plot** after editing
+- Click **Regenerate XCTD QC Plot** after editing.
 """
         )
 
@@ -195,10 +261,16 @@ Generate XCTD EDF + Initial QC
                 errors="coerce"
             )
 
-            edited_df["Resistance"] = pd.to_numeric(
-                edited_df["Resistance"],
-                errors="coerce"
-            )
+            if "Resistance" in edited_df.columns:
+
+                edited_df["Resistance"] = pd.to_numeric(
+                    edited_df["Resistance"],
+                    errors="coerce"
+                )
+
+            else:
+
+                edited_df["Resistance"] = 9999.99
 
             edited_df = edited_df.dropna(
                 subset=[
@@ -269,11 +341,58 @@ Generate XCTD EDF + Initial QC
         # =================================================
 
         if st.session_state["xctd_corrected_files"]:
+
             final_files = st.session_state[
                 "xctd_corrected_files"
             ]
+
         else:
+
             final_files = edf_files
+
+        # =================================================
+        # XCTD INTERPOLATION
+        # =================================================
+
+        st.header("XCTD Interpolation")
+
+        if st.button(
+            "Generate XCTD 1m and 5m Interpolation",
+            key="generate_xctd_interpolation"
+        ):
+
+            interp_1m = interpolate_xctd(
+                final_files,
+                1
+            )
+
+            interp_5m = interpolate_xctd(
+                final_files,
+                5
+            )
+
+            st.session_state["xctd_interp_1m"] = interp_1m
+            st.session_state["xctd_interp_5m"] = interp_5m
+
+            st.success(
+                "XCTD interpolation completed."
+            )
+
+        if st.session_state["xctd_interp_1m"] is not None:
+
+            st.subheader("1 m XCTD Preview")
+
+            st.dataframe(
+                st.session_state["xctd_interp_1m"].head()
+            )
+
+        if st.session_state["xctd_interp_5m"] is not None:
+
+            st.subheader("5 m XCTD Preview")
+
+            st.dataframe(
+                st.session_state["xctd_interp_5m"].head()
+            )
 
         # =================================================
         # CREATE EDF ZIP
@@ -298,117 +417,6 @@ Generate XCTD EDF + Initial QC
                     item["name"],
                     edf_text
                 )
-                
-        
-                # =================================================
-        # XCTD INTERPOLATION
-        # =================================================
-
-        st.header(
-            "XCTD Interpolation"
-        )
-
-
-        if st.button(
-            "Generate XCTD 1m and 5m Interpolation"
-        ):
-
-
-            interp_1m = interpolate_xctd(
-
-                final_files,
-
-                1
-
-            )
-
-
-            interp_5m = interpolate_xctd(
-
-                final_files,
-
-                5
-
-            )
-
-
-            st.session_state[
-                "xctd_interp_1m"
-            ] = interp_1m
-
-
-            st.session_state[
-                "xctd_interp_5m"
-            ] = interp_5m
-
-
-
-        if "xctd_interp_1m" in st.session_state:
-
-
-            st.subheader(
-                "1 m XCTD Preview"
-            )
-
-
-            st.dataframe(
-
-                st.session_state[
-                    "xctd_interp_1m"
-                ].head()
-
-            )
-
-
-            st.download_button(
-
-                "Download XCTD 1m CSV",
-
-                st.session_state[
-                    "xctd_interp_1m"
-                ].to_csv(
-                    index=False
-                ),
-
-                "xctd_1m_interpolation.csv",
-
-                "text/csv"
-
-            )
-
-
-        if "xctd_interp_5m" in st.session_state:
-
-
-            st.subheader(
-                "5 m XCTD Preview"
-            )
-
-
-            st.dataframe(
-
-                st.session_state[
-                    "xctd_interp_5m"
-                ].head()
-
-            )
-
-
-            st.download_button(
-
-                "Download XCTD 5m CSV",
-
-                st.session_state[
-                    "xctd_interp_5m"
-                ].to_csv(
-                    index=False
-                ),
-
-                "xctd_5m_interpolation.csv",
-
-                "text/csv"
-
-            )        
 
         # =================================================
         # DOWNLOADS
@@ -427,6 +435,30 @@ Generate XCTD EDF + Initial QC
                 mime="application/zip",
                 key="download_xctd_edf_zip"
             )
+
+            if st.session_state["xctd_interp_1m"] is not None:
+
+                st.download_button(
+                    label="Download XCTD 1m CSV",
+                    data=st.session_state[
+                        "xctd_interp_1m"
+                    ].to_csv(index=False),
+                    file_name="xctd_1m_interpolation.csv",
+                    mime="text/csv",
+                    key="download_xctd_1m_csv"
+                )
+
+            if st.session_state["xctd_interp_5m"] is not None:
+
+                st.download_button(
+                    label="Download XCTD 5m CSV",
+                    data=st.session_state[
+                        "xctd_interp_5m"
+                    ].to_csv(index=False),
+                    file_name="xctd_5m_interpolation.csv",
+                    mime="text/csv",
+                    key="download_xctd_5m_csv"
+                )
 
         with col2:
 
@@ -449,24 +481,3 @@ Generate XCTD EDF + Initial QC
                     mime="image/png",
                     key="download_xctd_initial_plot"
                 )
-
-
-def make_xctd_edf_text_for_download(metadata, df):
-
-    metadata_text = (
-        " // THIS IS AN MK-150 EXPORT DATA FILE (EDF)\n"
-    )
-
-    for key, value in metadata.items():
-
-        metadata_text += f"{key}: {value}\n"
-
-    metadata_text += "\n"
-
-    data_text = df.to_csv(
-        sep="\t",
-        index=False,
-        float_format="%.3f"
-    )
-
-    return metadata_text + data_text
