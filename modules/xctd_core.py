@@ -191,3 +191,167 @@ def generate_edf(uploaded_files, participants, start_date, end_date):
         )
 
     return edf_files
+    
+# ==================================================
+# XCTD QC PLOT
+# ==================================================
+
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+
+
+def generate_xctd_qc_plot(edf_files):
+
+    fig = plt.figure(
+        figsize=(14, 14)
+    )
+
+    gs = gridspec.GridSpec(
+        2,
+        2,
+        width_ratios=[
+            3,
+            1
+        ],
+        height_ratios=[
+            1,
+            1
+        ],
+        hspace=0.18,
+        wspace=0.1
+    )
+
+
+    ax1 = fig.add_subplot(
+        gs[0, 0]
+    )
+
+    ax2 = fig.add_subplot(
+        gs[1, 0]
+    )
+
+    ax3 = fig.add_subplot(
+        gs[:, 1]
+    )
+
+
+    offset = 3
+
+    increm = 0
+
+
+    lines = []
+
+    labels = []
+
+
+    for item in edf_files:
+
+
+        df = item[
+            "df"
+        ]
+
+
+        t_line, = ax1.plot(
+
+            df["Temperature"]
+            +
+            increm,
+
+            df["Depth"],
+
+            linewidth=1.5
+
+        )
+
+
+        ax2.plot(
+
+            df["Salinity"]
+            +
+            increm,
+
+            df["Depth"],
+
+            linewidth=1.5
+
+        )
+
+
+        lines.append(
+            t_line
+        )
+
+
+        labels.append(
+            item["name"]
+        )
+
+
+        increm += offset
+
+
+
+    # Temperature
+
+    ax1.invert_yaxis()
+
+    ax1.set_title(
+        "Temperature Profiles"
+    )
+
+    ax1.set_xlabel(
+        "Temperature + Offset (°C)"
+    )
+
+    ax1.set_ylabel(
+        "Depth (m)"
+    )
+
+    ax1.grid(
+        True
+    )
+
+
+    # Salinity
+
+    ax2.invert_yaxis()
+
+    ax2.set_title(
+        "Salinity Profiles"
+    )
+
+    ax2.set_xlabel(
+        "Salinity + Offset (PSU)"
+    )
+
+    ax2.set_ylabel(
+        "Depth (m)"
+    )
+
+    ax2.grid(
+        True
+    )
+
+
+    # Legend
+
+    ax3.axis(
+        "off"
+    )
+
+    ax3.legend(
+
+        lines,
+
+        labels,
+
+        loc="center",
+
+        fontsize=10
+
+    )
+
+
+    return fig
