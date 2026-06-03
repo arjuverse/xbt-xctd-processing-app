@@ -400,6 +400,7 @@ if st.session_state.processed:
 - Remove spike rows
 - Edit bad temperatures
 - Edit wrong depths
+- Remove bottom hits
 - Remove noisy tail values
 """
     )

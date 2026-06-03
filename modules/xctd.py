@@ -226,6 +226,7 @@ Use the editable table to:
 - Remove spike rows
 - Edit wrong temperature values
 - Edit wrong salinity values
+- Remove bottom hits
 - Remove noisy tail values
 - Click **Regenerate XCTD QC Plot** after editing.
 """

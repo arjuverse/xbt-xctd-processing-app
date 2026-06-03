@@ -200,159 +200,95 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
 
+
 def generate_xctd_qc_plot(edf_files):
 
-    fig = plt.figure(
-        figsize=(14, 14)
-    )
+    fig = plt.figure(figsize=(16, 14))
 
     gs = gridspec.GridSpec(
         2,
-        2,
-        width_ratios=[
-            3,
-            1
-        ],
-        height_ratios=[
-            1,
-            1
-        ],
-        hspace=0.18,
-        wspace=0.1
+        3,
+        width_ratios=[2.5, 2.5, 1],
+        height_ratios=[1, 1],
+        hspace=0.22,
+        wspace=0.18
     )
 
-
-    ax1 = fig.add_subplot(
-        gs[0, 0]
-    )
-
-    ax2 = fig.add_subplot(
-        gs[1, 0]
-    )
-
-    ax3 = fig.add_subplot(
-        gs[:, 1]
-    )
-
-
-    offset = 3
+    ax1 = fig.add_subplot(gs[0, 0])  # Temp offset
+    ax2 = fig.add_subplot(gs[1, 0])  # Sal offset
+    ax3 = fig.add_subplot(gs[0, 1])  # Temp consistency
+    ax4 = fig.add_subplot(gs[1, 1])  # Sal consistency
+    ax5 = fig.add_subplot(gs[:, 2])  # Legend
 
     increm = 0
-
+    offset = 3
 
     lines = []
-
     labels = []
-
 
     for item in edf_files:
 
+        df = item["df"]
 
-        df = item[
-            "df"
-        ]
-
-
-        t_line, = ax1.plot(
-
-            df["Temperature"]
-            +
-            increm,
-
+        line, = ax1.plot(
+            df["Temperature"] + increm,
             df["Depth"],
-
             linewidth=1.5
-
         )
-
 
         ax2.plot(
-
-            df["Salinity"]
-            +
-            increm,
-
+            df["Salinity"] + increm,
             df["Depth"],
-
             linewidth=1.5
-
         )
 
-
-        lines.append(
-            t_line
+        ax3.plot(
+            df["Temperature"],
+            df["Depth"],
+            linewidth=1.5
         )
 
-
-        labels.append(
-            item["name"]
+        ax4.plot(
+            df["Salinity"],
+            df["Depth"],
+            linewidth=1.5
         )
 
+        lines.append(line)
+        labels.append(item["name"])
 
         increm += offset
 
+    for ax in [ax1, ax2, ax3, ax4]:
+        ax.invert_yaxis()
+        ax.grid(True, linestyle="--", alpha=0.2)
+        ax.xaxis.tick_top()
+        ax.xaxis.set_label_position("top")
 
+    ax1.set_title("Temperature Profiles")
+    ax1.set_xlabel("Temperature (°C) + Offset")
+    ax1.set_ylabel("Depth (m)")
 
-    # Temperature
+    ax2.set_title("Salinity Profiles")
+    ax2.set_xlabel("Salinity (PSU) + Offset")
+    ax2.set_ylabel("Depth (m)")
 
-    ax1.invert_yaxis()
+    ax3.set_title("Temperature Probe-to-Probe Consistency")
+    ax3.set_xlabel("Temperature (°C)")
+    ax3.set_ylabel("Depth (m)")
 
-    ax1.set_title(
-        "Temperature Profiles"
-    )
+    ax4.set_title("Salinity Probe-to-Probe Consistency")
+    ax4.set_xlabel("Salinity (PSU)")
+    ax4.set_ylabel("Depth (m)")
 
-    ax1.set_xlabel(
-        "Temperature + Offset (°C)"
-    )
-
-    ax1.set_ylabel(
-        "Depth (m)"
-    )
-
-    ax1.grid(
-        True
-    )
-
-
-    # Salinity
-
-    ax2.invert_yaxis()
-
-    ax2.set_title(
-        "Salinity Profiles"
-    )
-
-    ax2.set_xlabel(
-        "Salinity + Offset (PSU)"
-    )
-
-    ax2.set_ylabel(
-        "Depth (m)"
-    )
-
-    ax2.grid(
-        True
-    )
-
-
-    # Legend
-
-    ax3.axis(
-        "off"
-    )
-
-    ax3.legend(
-
+    ax5.axis("off")
+    ax5.legend(
         lines,
-
         labels,
-
-        loc="center",
-
-        fontsize=10
-
+        fontsize=10,
+        frameon=True,
+        loc="center"
     )
-
 
     return fig
     

@@ -54,7 +54,7 @@ def make_sample_zip(folder):
 # =====================================================
 
 st.title(
-    "🌊 XBT/XCTD Processing System"
+    "🌊 XBT/XCTD Processing System(MK-150 Based)"
 )
 
 st.markdown(
