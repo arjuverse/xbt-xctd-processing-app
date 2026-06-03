@@ -13,16 +13,17 @@ from modules.xctd import run_xctd
 # =====================================================
 
 st.set_page_config(
-    page_title="Ocean Profile Processing System",
+    page_title="XBT/XCTD Processing System (MK-150 Based)",
+    page_icon="🌊",
     layout="wide"
 )
 
 
 # =====================================================
-# SAMPLE ZIP CREATOR
+# SAMPLE ZIP FUNCTION
 # =====================================================
 
-def make_sample_zip(folder):
+def create_zip(folder):
 
     buffer = io.BytesIO()
 
@@ -50,125 +51,184 @@ def make_sample_zip(folder):
 
 
 # =====================================================
-# TITLE
-# =====================================================
-
-st.title(
-    "🌊 XBT/XCTD Processing System(MK-150 Based)"
-)
-
-st.markdown(
-    """
-Interactive web-based processing platform for:
-
-- Expendable Bathythermograph (XBT)
-- Expendable Conductivity Temperature Depth (XCTD)
-
-Processing workflow:
-
-Raw data → EDF → QC → Editing → Interpolation → Final products
-"""
-)
-
-
-# =====================================================
-# STREAMLIT SLEEP NOTICE
-# =====================================================
-
-st.warning(
-    """
-If the app was inactive, loading may take 30–60 seconds while the server wakes up.
-"""
-)
-
-
-# =====================================================
-# SAMPLE DATA
-# =====================================================
-
-st.header(
-    "Sample Data for Testing"
-)
-
-
-col1, col2 = st.columns(2)
-
-
-with col1:
-
-    if os.path.exists(
-        "sample_data/xbt"
-    ):
-
-        st.download_button(
-
-            "Download Sample XBT Data",
-
-            make_sample_zip(
-                "sample_data/xbt"
-            ),
-
-            "sample_xbt_data.zip",
-
-            "application/zip"
-
-        )
-
-
-with col2:
-
-    if os.path.exists(
-        "sample_data/xctd"
-    ):
-
-        st.download_button(
-
-            "Download Sample XCTD Data",
-
-            make_sample_zip(
-                "sample_data/xctd"
-            ),
-
-            "sample_xctd_data.zip",
-
-            "application/zip"
-
-        )
-
-
-# =====================================================
-# MODULE SELECTION
+# SIDEBAR
 # =====================================================
 
 st.sidebar.title(
-    "Processing Module"
+    "🌊 XBT/XCTD System"
 )
-
 
 module = st.sidebar.radio(
-
-    "Select Data Type",
-
+    "Select Processing Module",
     [
-
-        "XBT",
-
-        "XCTD"
-
+        "Home",
+        "XBT Processing",
+        "XCTD Processing"
     ]
-
 )
 
 
 # =====================================================
-# RUN MODULES
+# HOME PAGE
 # =====================================================
 
-if module == "XBT":
+if module == "Home":
+
+    st.title(
+        "🌊 XBT/XCTD Processing System (MK-150 Based)"
+    )
+
+    st.subheader(
+        "Interactive Quality Control and Interpolation Platform"
+    )
+
+    st.markdown(
+        """
+A web-based scientific application for processing expendable oceanographic
+profile observations generated from MK-150 based workflows.
+
+Supported instruments:
+
+### 🌡 XBT — Expendable Bathythermograph
+
+Processes temperature profiles.
+
+### 🌊 XCTD — Expendable Conductivity Temperature Depth
+
+Processes temperature and salinity profiles.
+
+---
+
+## Processing Pipeline
+
+Raw MK-150 Instrument Data
+
+⬇️
+
+EDF Generation
+
+⬇️
+
+Initial Quality Control
+
+⬇️
+
+Interactive Manual Correction
+
+⬇️
+
+Regenerated QC
+
+⬇️
+
+1 m / 5 m Interpolation
+
+⬇️
+
+Final Data Products
+
+---
+"""
+    )
+
+    st.header("About")
+
+    st.markdown(
+        """
+**Version:** v2.0  
+
+**System:** MK-150 Based  
+
+**Modules:**  
+- XBT Processing  
+- XCTD Processing  
+
+**Developer:** Arjun K Sabu (arjunksabu@gmail.com)
+
+**Source Code:** Sidharth Sudheer (sidharthsudheer2000@gmail.com)
+"""
+    )
+
+    # =================================================
+    # SAMPLE DATA
+    # =================================================
+
+    st.header(
+        "📦 Sample Data"
+    )
+
+    st.info(
+        """
+New users can download sample files below
+and test the complete processing workflow.
+"""
+    )
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        if os.path.exists(
+            "sample_data/xbt"
+        ):
+
+            st.download_button(
+                "Download Sample XBT Data",
+                create_zip(
+                    "sample_data/xbt"
+                ),
+                "sample_xbt_data.zip",
+                "application/zip"
+            )
+
+        else:
+
+            st.warning(
+                "Sample XBT folder not found."
+            )
+
+    with col2:
+
+        if os.path.exists(
+            "sample_data/xctd"
+        ):
+
+            st.download_button(
+                "Download Sample XCTD Data",
+                create_zip(
+                    "sample_data/xctd"
+                ),
+                "sample_xctd_data.zip",
+                "application/zip"
+            )
+
+        else:
+
+            st.warning(
+                "Sample XCTD folder not found."
+            )
+
+    st.warning(
+        """
+If the app was inactive,
+Streamlit Cloud may take 30–60 seconds to wake up.
+"""
+    )
+
+
+# =====================================================
+# XBT MODULE
+# =====================================================
+
+elif module == "XBT Processing":
 
     run_xbt()
 
 
-elif module == "XCTD":
+# =====================================================
+# XCTD MODULE
+# =====================================================
+
+elif module == "XCTD Processing":
 
     run_xctd()
