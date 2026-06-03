@@ -6,9 +6,9 @@ import streamlit as st
 
 from modules.xctd_core import (
     generate_edf,
-    generate_xctd_qc_plot
+    generate_xctd_qc_plot,
+    interpolate_xctd
 )
-
 
 def run_xctd():
 
@@ -298,6 +298,117 @@ Generate XCTD EDF + Initial QC
                     item["name"],
                     edf_text
                 )
+                
+        
+                # =================================================
+        # XCTD INTERPOLATION
+        # =================================================
+
+        st.header(
+            "XCTD Interpolation"
+        )
+
+
+        if st.button(
+            "Generate XCTD 1m and 5m Interpolation"
+        ):
+
+
+            interp_1m = interpolate_xctd(
+
+                final_files,
+
+                1
+
+            )
+
+
+            interp_5m = interpolate_xctd(
+
+                final_files,
+
+                5
+
+            )
+
+
+            st.session_state[
+                "xctd_interp_1m"
+            ] = interp_1m
+
+
+            st.session_state[
+                "xctd_interp_5m"
+            ] = interp_5m
+
+
+
+        if "xctd_interp_1m" in st.session_state:
+
+
+            st.subheader(
+                "1 m XCTD Preview"
+            )
+
+
+            st.dataframe(
+
+                st.session_state[
+                    "xctd_interp_1m"
+                ].head()
+
+            )
+
+
+            st.download_button(
+
+                "Download XCTD 1m CSV",
+
+                st.session_state[
+                    "xctd_interp_1m"
+                ].to_csv(
+                    index=False
+                ),
+
+                "xctd_1m_interpolation.csv",
+
+                "text/csv"
+
+            )
+
+
+        if "xctd_interp_5m" in st.session_state:
+
+
+            st.subheader(
+                "5 m XCTD Preview"
+            )
+
+
+            st.dataframe(
+
+                st.session_state[
+                    "xctd_interp_5m"
+                ].head()
+
+            )
+
+
+            st.download_button(
+
+                "Download XCTD 5m CSV",
+
+                st.session_state[
+                    "xctd_interp_5m"
+                ].to_csv(
+                    index=False
+                ),
+
+                "xctd_5m_interpolation.csv",
+
+                "text/csv"
+
+            )        
 
         # =================================================
         # DOWNLOADS

@@ -355,3 +355,103 @@ def generate_xctd_qc_plot(edf_files):
 
 
     return fig
+    
+# ==================================================
+# XCTD INTERPOLATION
+# ==================================================
+
+from scipy.interpolate import interp1d
+import numpy as np
+
+
+def interpolate_xctd(
+    edf_files,
+    interval
+):
+
+    output_rows = []
+
+    for item in edf_files:
+
+        df = item["df"].copy()
+
+        df = df.dropna(
+            subset=[
+                "Depth",
+                "Temperature",
+                "Salinity"
+            ]
+        )
+
+        df = df.sort_values(
+            "Depth"
+        )
+
+        max_depth = int(
+            df["Depth"].max()
+        )
+
+
+        new_depth = np.arange(
+            0,
+            max_depth + interval,
+            interval
+        )
+
+
+        temp_interp = interp1d(
+            df["Depth"],
+            df["Temperature"],
+            bounds_error=False,
+            fill_value=np.nan
+        )
+
+
+        sal_interp = interp1d(
+            df["Depth"],
+            df["Salinity"],
+            bounds_error=False,
+            fill_value=np.nan
+        )
+
+
+        row = {
+            "Profile":
+            item["name"]
+        }
+
+
+        for d, t in zip(
+            new_depth,
+            temp_interp(new_depth)
+        ):
+
+            row[
+                f"Temp_{int(d)}"
+            ] = round(
+                float(t),
+                3
+            )
+
+
+        for d, s in zip(
+            new_depth,
+            sal_interp(new_depth)
+        ):
+
+            row[
+                f"Sal_{int(d)}"
+            ] = round(
+                float(s),
+                3
+            )
+
+
+        output_rows.append(
+            row
+        )
+
+
+    return pd.DataFrame(
+        output_rows
+    )
