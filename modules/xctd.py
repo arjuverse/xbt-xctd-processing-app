@@ -102,7 +102,7 @@ Use the editable table to:
     # XCTD CRUISE INFORMATION
     # =====================================================
 
-    st.sidebar.header("XCTD Cruise Information")
+    st.sidebar.header("Cruise Information")
 
     participants = st.sidebar.text_input(
         "Participants",

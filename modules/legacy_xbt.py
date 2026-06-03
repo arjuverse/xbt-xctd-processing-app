@@ -16,42 +16,6 @@ import os
 
 
 
-# =====================================================
-# README
-# =====================================================
-
-with st.expander("README / User Instructions", expanded=True):
-
-    st.markdown(
-        """
-# Workflow
-
-1. Upload raw .XBT files
-2. Generate EDF files + Initial QC plots
-3. Visually inspect spikes/spurious values
-4. Edit EDF tables manually
-5. Regenerate QC plots
-6. Download corrected EDF ZIP
-
----
-
-# QC Procedure
-
-- Remove spike rows
-- Edit wrong temperatures
-- Edit wrong depths
-- Remove bottom hit values
-- Replot until QC is acceptable
-
----
-
-# Outputs
-
-- Corrected EDF ZIP
-- QC Figures
-- Probe-to-probe consistency plots
-"""
-    )
 
 # =====================================================
 # SESSION STATE
