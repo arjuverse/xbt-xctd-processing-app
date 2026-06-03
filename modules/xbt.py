@@ -1,3 +1,7 @@
+# =====================================================
+# XBT MODULE WRAPPER
+# =====================================================
+
 import streamlit as st
 
 
@@ -7,6 +11,26 @@ def run_xbt():
         "XBT Processing"
     )
 
-    st.success(
-        "XBT module coming next"
+    st.info(
+        """
+Upload raw XBT files.
+
+Workflow:
+
+Generate EDF
+→ QC
+→ Edit
+→ Regenerate
+→ Interpolate
+→ Download
+"""
+    )
+
+    exec(
+        open(
+            "legacy_xbt.py",
+            encoding="utf-8"
+        ).read(),
+
+        globals()
     )
