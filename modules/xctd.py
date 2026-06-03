@@ -1,6 +1,7 @@
 import io
 import zipfile
 
+import pandas as pd
 import streamlit as st
 
 from modules.xctd_core import (
@@ -17,12 +18,13 @@ def run_xctd():
         """
 Upload raw `.CTD` files.
 
-Current workflow:
+Workflow:
 
-Generate XCTD EDF
-→ Initial QC Plot
-→ Preview EDF Data
-→ Download EDF ZIP
+Generate XCTD EDF + Initial QC
+→ Inspect temperature and salinity plots
+→ Edit spike/spurious values in EDF table
+→ Regenerate QC plot
+→ Download corrected EDF ZIP and QC plot
 """
     )
 
@@ -31,12 +33,16 @@ Generate XCTD EDF
     # =====================================================
 
     if "xctd_edf_files" not in st.session_state:
-
         st.session_state["xctd_edf_files"] = []
 
-    if "xctd_initial_plot" not in st.session_state:
+    if "xctd_corrected_files" not in st.session_state:
+        st.session_state["xctd_corrected_files"] = []
 
+    if "xctd_initial_plot" not in st.session_state:
         st.session_state["xctd_initial_plot"] = None
+
+    if "xctd_corrected_plot" not in st.session_state:
+        st.session_state["xctd_corrected_plot"] = None
 
     # =====================================================
     # XCTD CRUISE INFORMATION
@@ -81,9 +87,7 @@ Generate XCTD EDF
 
         if not uploaded_files:
 
-            st.error(
-                "Please upload XCTD files."
-            )
+            st.error("Please upload XCTD files.")
 
         else:
 
@@ -94,9 +98,9 @@ Generate XCTD EDF
                 end_date
             )
 
-            st.session_state[
-                "xctd_edf_files"
-            ] = edf_files
+            st.session_state["xctd_edf_files"] = edf_files
+            st.session_state["xctd_corrected_files"] = []
+            st.session_state["xctd_corrected_plot"] = None
 
             if not edf_files:
 
@@ -119,56 +123,160 @@ Generate XCTD EDF
                     bbox_inches="tight"
                 )
 
-                st.session_state[
-                    "xctd_initial_plot"
-                ] = plot_buffer.getvalue()
+                st.session_state["xctd_initial_plot"] = (
+                    plot_buffer.getvalue()
+                )
 
                 st.success(
                     f"Generated {len(edf_files)} XCTD EDF files."
                 )
 
     # =====================================================
-    # DISPLAY RESULTS
+    # DISPLAY XCTD RESULTS
     # =====================================================
 
-    edf_files = st.session_state[
-        "xctd_edf_files"
-    ]
+    edf_files = st.session_state["xctd_edf_files"]
 
     if edf_files:
 
-        st.header(
-            "Initial XCTD QC Plot"
-        )
+        st.header("Initial XCTD QC Plot")
 
         fig = generate_xctd_qc_plot(
             edf_files
         )
 
-        st.pyplot(
-            fig
-        )
+        st.pyplot(fig)
 
         # =================================================
-        # EDF PREVIEW
+        # INTERACTIVE EDF QC EDITOR
         # =================================================
 
-        st.header(
-            "XCTD EDF Preview"
+        st.header("Interactive XCTD EDF QC Editor")
+
+        st.markdown(
+            """
+### Editing Instructions
+
+- Remove spike rows
+- Edit wrong temperature values
+- Edit wrong salinity values
+- Remove noisy tail values
+- Click **Regenerate XCTD QC Plot** after editing
+"""
         )
+
+        corrected_files = []
 
         for item in edf_files:
 
             st.subheader(
-                item["name"]
+                f"Edit {item['name']}"
             )
 
-            st.dataframe(
-                item["df"].head()
+            edited_df = st.data_editor(
+                item["df"],
+                num_rows="dynamic",
+                use_container_width=True,
+                key=f"xctd_editor_{item['name']}"
+            )
+
+            edited_df["Depth"] = pd.to_numeric(
+                edited_df["Depth"],
+                errors="coerce"
+            )
+
+            edited_df["Temperature"] = pd.to_numeric(
+                edited_df["Temperature"],
+                errors="coerce"
+            )
+
+            edited_df["Salinity"] = pd.to_numeric(
+                edited_df["Salinity"],
+                errors="coerce"
+            )
+
+            edited_df["Resistance"] = pd.to_numeric(
+                edited_df["Resistance"],
+                errors="coerce"
+            )
+
+            edited_df = edited_df.dropna(
+                subset=[
+                    "Depth",
+                    "Temperature",
+                    "Salinity"
+                ]
+            )
+
+            corrected_files.append(
+                {
+                    "name": item["name"],
+                    "metadata": item["metadata"],
+                    "df": edited_df
+                }
             )
 
         # =================================================
-        # EDF ZIP DOWNLOAD
+        # REGENERATE QC
+        # =================================================
+
+        if st.button(
+            "Regenerate XCTD QC Plot",
+            key="regenerate_xctd_qc"
+        ):
+
+            st.session_state["xctd_corrected_files"] = (
+                corrected_files
+            )
+
+            fig2 = generate_xctd_qc_plot(
+                corrected_files
+            )
+
+            corrected_buffer = io.BytesIO()
+
+            fig2.savefig(
+                corrected_buffer,
+                format="png",
+                dpi=300,
+                bbox_inches="tight"
+            )
+
+            st.session_state["xctd_corrected_plot"] = (
+                corrected_buffer.getvalue()
+            )
+
+            st.success(
+                "Corrected XCTD QC plot generated."
+            )
+
+        # =================================================
+        # DISPLAY CORRECTED QC
+        # =================================================
+
+        if st.session_state["xctd_corrected_files"]:
+
+            st.header("Corrected XCTD QC Plot")
+
+            fig3 = generate_xctd_qc_plot(
+                st.session_state["xctd_corrected_files"]
+            )
+
+            st.pyplot(fig3)
+
+        # =================================================
+        # FINAL FILE SELECTION
+        # =================================================
+
+        if st.session_state["xctd_corrected_files"]:
+            final_files = st.session_state[
+                "xctd_corrected_files"
+            ]
+        else:
+            final_files = edf_files
+
+        # =================================================
+        # CREATE EDF ZIP
         # =================================================
 
         zip_buffer = io.BytesIO()
@@ -179,35 +287,75 @@ Generate XCTD EDF
             zipfile.ZIP_DEFLATED
         ) as zipf:
 
-            for item in edf_files:
+            for item in final_files:
+
+                edf_text = make_xctd_edf_text_for_download(
+                    item["metadata"],
+                    item["df"]
+                )
 
                 zipf.writestr(
                     item["name"],
-                    item["edf_text"]
+                    edf_text
                 )
 
-        st.header(
-            "Downloads"
-        )
+        # =================================================
+        # DOWNLOADS
+        # =================================================
 
-        st.download_button(
-            label="Download XCTD EDF ZIP",
-            data=zip_buffer.getvalue(),
-            file_name="xctd_edf_files.zip",
-            mime="application/zip",
-            key="download_xctd_edf_zip"
-        )
+        st.header("Downloads")
 
-        if st.session_state[
-            "xctd_initial_plot"
-        ] is not None:
+        col1, col2 = st.columns(2)
+
+        with col1:
 
             st.download_button(
-                label="Download XCTD Initial QC Plot",
-                data=st.session_state[
-                    "xctd_initial_plot"
-                ],
-                file_name="xctd_initial_qc_plot.png",
-                mime="image/png",
-                key="download_xctd_initial_plot"
+                label="Download XCTD EDF ZIP",
+                data=zip_buffer.getvalue(),
+                file_name="xctd_edf_files.zip",
+                mime="application/zip",
+                key="download_xctd_edf_zip"
             )
+
+        with col2:
+
+            if st.session_state["xctd_corrected_plot"]:
+
+                st.download_button(
+                    label="Download Corrected XCTD QC Plot",
+                    data=st.session_state["xctd_corrected_plot"],
+                    file_name="xctd_corrected_qc_plot.png",
+                    mime="image/png",
+                    key="download_xctd_corrected_plot"
+                )
+
+            elif st.session_state["xctd_initial_plot"]:
+
+                st.download_button(
+                    label="Download Initial XCTD QC Plot",
+                    data=st.session_state["xctd_initial_plot"],
+                    file_name="xctd_initial_qc_plot.png",
+                    mime="image/png",
+                    key="download_xctd_initial_plot"
+                )
+
+
+def make_xctd_edf_text_for_download(metadata, df):
+
+    metadata_text = (
+        " // THIS IS AN MK-150 EXPORT DATA FILE (EDF)\n"
+    )
+
+    for key, value in metadata.items():
+
+        metadata_text += f"{key}: {value}\n"
+
+    metadata_text += "\n"
+
+    data_text = df.to_csv(
+        sep="\t",
+        index=False,
+        float_format="%.3f"
+    )
+
+    return metadata_text + data_text
