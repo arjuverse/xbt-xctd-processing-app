@@ -101,7 +101,7 @@ Processes temperature and salinity profiles.
 
 ## Processing Pipeline
 
-Raw MK-150 Instrument Data ➡️ EDF Generation ➡️ Initial Quality Control ➡️ Interactive Manual Correction ➡️ Regenerated QC ➡️ 1 m / 5 m Interpolation ➡️ Final Data Products
+Raw MK-150 Data ➡️ EDF Generation ➡️ Initial Quality Control ➡️ Interactive Manual Correction ➡️ Regenerated QC ➡️ 1 m / 5 m Interpolation ➡️ Final Results Download
 
 ---
 """

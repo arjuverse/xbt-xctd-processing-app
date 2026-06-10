@@ -10,7 +10,7 @@ The application provides an interactive replacement for traditional command-line
 
 ## Supported Instruments
 
-### 🌡 XBT — Expendable Bathythermograph
+### 🌡 XBT - Expendable Bathythermograph
 
 Processes ocean temperature profile observations.
 
@@ -26,7 +26,7 @@ Supported workflow:
 - Final product export
 
 
-### 🌊 XCTD — Expendable Conductivity Temperature Depth
+### 🌊 XCTD - Expendable Conductivity Temperature Depth
 
 Processes ocean temperature and salinity profile observations.
 
@@ -50,35 +50,9 @@ Supported workflow:
 
 
 ```text
-Raw MK-150 Data
 
-        ↓
+Raw MK-150 Data ➡️ EDF Generation ➡️ Initial Quality Control ➡️ Interactive Manual Correction ➡️ Regenerated QC ➡️ 1 m / 5 m Interpolation ➡️ Final Results Download
 
-EDF Generation
-
-        ↓
-
-Initial Quality Control
-
-        ↓
-
-Visual Inspection
-
-        ↓
-
-Interactive Manual Editing
-
-        ↓
-
-Regenerate QC
-
-        ↓
-
-1 m / 5 m Interpolation
-
-        ↓
-
-Final Quality Controlled Products
 ```
 
 ---
@@ -331,11 +305,9 @@ Corrected QC plots
 This software is designed for:
 
 
-- Oceanographic research cruises
+- Ships of Oppurtunities and Oceanographic research cruises
 - XBT/XCTD data processing
-- Hydrographic data quality control
-- Research data preparation
-- Educational demonstrations
+- Temperature and Salinity data quality control
 
 
 ---
@@ -361,7 +333,7 @@ Instrument workflow: MK-150 Based
 
 **Arjun K Sabu (arjunksabu@gmail.com)**
 
-#Python Source Code
+# Python Source Code
 
 **Sidharth Sudheer (sidharthsudheer2000@gmail.com)**
 
