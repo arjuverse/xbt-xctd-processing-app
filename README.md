@@ -359,10 +359,14 @@ Instrument workflow: MK-150 Based
 # Developer
 
 
-**Arjun K Sabu**
+**Arjun K Sabu (arjunksabu@gmail.com)**
+
+#Python Source Code
+
+**Sidharth Sudheer (sidharthsudheer2000@gmail.com)**
 
 
-Oceanographic Data Processing
+XBT/XCTD Data Processing
 
 
 ---

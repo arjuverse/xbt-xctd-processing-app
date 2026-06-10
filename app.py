@@ -101,60 +101,20 @@ Processes temperature and salinity profiles.
 
 ## Processing Pipeline
 
-Raw MK-150 Instrument Data
-
-⬇️
-
-EDF Generation
-
-⬇️
-
-Initial Quality Control
-
-⬇️
-
-Interactive Manual Correction
-
-⬇️
-
-Regenerated QC
-
-⬇️
-
-1 m / 5 m Interpolation
-
-⬇️
-
-Final Data Products
+Raw MK-150 Instrument Data ➡️ EDF Generation ➡️ Initial Quality Control ➡️ Interactive Manual Correction ➡️ Regenerated QC ➡️ 1 m / 5 m Interpolation ➡️ Final Data Products
 
 ---
 """
     )
 
-    st.header("About")
-
-    st.markdown(
-        """
-**Version:** v2.0  
-
-**System:** MK-150 Based  
-
-**Modules:**  
-- XBT Processing  
-- XCTD Processing  
-
-**Developer:** Arjun K Sabu (arjunksabu@gmail.com)
-
-**Source Code:** Sidharth Sudheer (sidharthsudheer2000@gmail.com)
-"""
-    )
+    
 
     # =================================================
-    # SAMPLE DATA
+    # SAMPLE SYNTHETIC DATA
     # =================================================
 
     st.header(
-        "📦 Sample Data"
+        "📦 Sample Synthetic Data"
     )
 
     st.info(
@@ -215,6 +175,27 @@ Streamlit Cloud may take 30–60 seconds to wake up.
 """
     )
 
+# =================================================
+# ABOUT
+# =================================================
+
+    st.header("About")
+
+    st.markdown(
+        """
+**Version:** v2.0  
+
+**System:** MK-150 Based  
+
+**Modules:**  
+- XBT Processing  
+- XCTD Processing  
+
+**Developer:** Arjun K Sabu (arjunksabu@gmail.com)
+
+**Source Code:** Sidharth Sudheer (sidharthsudheer2000@gmail.com)
+"""
+    )
 
 # =====================================================
 # XBT MODULE
