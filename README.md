@@ -238,7 +238,7 @@ The web application can be accessed using the deployed Streamlit URL:
 
 
 ```text
-(Add Streamlit App URL here)
+https://xbt-xctd-mk150.streamlit.app/
 ```
 
 
