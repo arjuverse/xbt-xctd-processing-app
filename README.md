@@ -306,6 +306,7 @@ This software is designed for:
 
 
 - Ships of Oppurtunities and Oceanographic research cruises
+- MK-150 Digital Converter by T.S.K
 - XBT/XCTD data processing
 - Temperature and Salinity data quality control
 
