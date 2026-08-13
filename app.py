@@ -193,7 +193,7 @@ Streamlit Cloud may take 30–60 seconds to wake up.
 
 **Developer:** Arjun K Sabu (arjunksabu@gmail.com)
 
-**Source Code:** Sidharth Sudheer (sidharthsudheer2000@gmail.com)
+**Python Source Code:** Sidharth Sudheer (sidharthsudheer2000@gmail.com)
 """
     )
 
